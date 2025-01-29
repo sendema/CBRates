@@ -29,10 +29,6 @@ git clone https://github.com/sendema/CBRates.git
 cd CBRates
 ```
 
-### Настройка окружения
-1. Скопируйте `.env.example` в `.env`
-2. Отредактируйте настройки подключения к базе данных
-
 ### Запуск приложения
 ```bash
 # Сборка и запуск контейнеров
@@ -102,6 +98,7 @@ const widget = new ExchangeRateWidget('exchange-rates', {
 
 ### Получение курсов за период
 `GET /api/rates/history?start_date=2025-01-28&end_date=2025-01-29&currencies=USD,EUR`
+
 **Пример ответа**:
 ```json
 [
@@ -136,11 +133,6 @@ const widget = new ExchangeRateWidget('exchange-rates', {
 docker-compose exec php bash 
 php bin/phpunit tests
 
-```
-
-### Frontend-тесты
-```bash
-npm test
 ```
 
 ## 🔒 Безопасность

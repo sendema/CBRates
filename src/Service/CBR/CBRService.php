@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\CBR;
 
+use App\Client\CBRClient;
 use App\Entity\ExchangeRate;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use App\Service\RedisCacheService;
 
 class CBRService
 {
-    private const CBR_URL = 'http://www.cbr.ru/scripts/XML_daily.asp';
     private const CACHE_TTL = 3600;
     private const CACHE_PREFIX = 'cbr_rates_';
 
     public function __construct(
-        private HttpClientInterface $httpClient,
+        private CBRClient $cbrClient,
         private EntityManagerInterface $entityManager,
         private RedisCacheService $cache,
         private LoggerInterface $logger
@@ -23,8 +23,8 @@ class CBRService
     public function updateExchangeRates(array $currencyCodes): void
     {
         try {
-            $xml = $this->fetchRatesWithCache();
-            $rates = $this->parseXML($xml, $currencyCodes);
+            $xml = $this->cbrClient->fetchRates();
+            $rates = $this->cbrClient->parseXML($xml, $currencyCodes);
             $this->saveRatesWithCache($rates);
         } catch (\Exception $e) {
             $this->logger->error('Failed to update exchange rates', [
@@ -33,66 +33,6 @@ class CBRService
             ]);
             throw new \RuntimeException('Failed to update exchange rates: ' . $e->getMessage(), 0, $e);
         }
-    }
-
-    private function fetchRatesWithCache(): string
-    {
-        $today = new \DateTime();
-        $url = self::CBR_URL;
-
-        $this->logger->info('Fetching CBR rates', [
-            'url' => $url,
-            'date' => $today->format('Y-m-d')
-        ]);
-
-        $response = $this->httpClient->request('GET', $url);
-
-        if (200 !== $response->getStatusCode()) {
-            throw new \RuntimeException(
-                sprintf('Failed to fetch rates from CBR. Status code: %d', $response->getStatusCode())
-            );
-        }
-
-        return $response->getContent();
-    }
-
-    private function parseXML(string $xml, array $currencyCodes): array
-    {
-        $rates = [];
-        $doc = new \DOMDocument();
-
-        if (!@$doc->loadXML($xml)) {
-            throw new \RuntimeException('Failed to parse XML response from CBR');
-        }
-
-        $date = new \DateTime($doc->documentElement->getAttribute('Date'));
-        $this->logger->info('Processing rates for date', ['date' => $date->format('Y-m-d')]);
-
-        foreach ($doc->getElementsByTagName('Valute') as $node) {
-            $code = $node->getElementsByTagName('CharCode')->item(0)->nodeValue;
-
-            if (!in_array($code, $currencyCodes)) {
-                continue;
-            }
-
-            $nominal = $node->getElementsByTagName('Nominal')->item(0)->nodeValue;
-            $value = str_replace(',', '.', $node->getElementsByTagName('Value')->item(0)->nodeValue);
-
-            $rates[] = [
-                'code' => $code,
-                'nominal' => $nominal,
-                'value' => $value,
-                'date' => $date
-            ];
-
-            $this->logger->debug('Parsed currency rate', [
-                'code' => $code,
-                'value' => $value,
-                'date' => $date->format('Y-m-d')
-            ]);
-        }
-
-        return $rates;
     }
 
     private function saveRatesWithCache(array $rates): void
@@ -124,6 +64,7 @@ class CBRService
 
             $this->entityManager->flush();
             $this->entityManager->commit();
+            $this->cache->invalidateTags(['exchange_rates']);
 
         } catch (\Exception $e) {
             $this->entityManager->rollback();

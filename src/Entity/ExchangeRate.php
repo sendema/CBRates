@@ -50,7 +50,7 @@ class ExchangeRate
         return $this->value;
     }
 
-    public function setValue(string $value): self
+    public function setValue(?string $value): self
     {
         $this->value = $value;
         return $this;
@@ -61,7 +61,7 @@ class ExchangeRate
         return $this->nominal;
     }
 
-    public function setNominal(string $nominal): self
+    public function setNominal(?string $nominal): self
     {
         $this->nominal = $nominal;
         return $this;

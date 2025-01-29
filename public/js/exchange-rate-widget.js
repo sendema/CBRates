@@ -93,10 +93,3 @@ class ExchangeRateWidget {
         setInterval(() => this.updateRates(), this.options.updateInterval);
     }
 }
-
-// export { ExchangeRateWidget };
-
-// if (typeof window !== 'undefined') {
-//     window.ExchangeRateWidget = ExchangeRateWidget;
-// }
-

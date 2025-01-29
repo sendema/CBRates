@@ -1,8 +1,5 @@
-# config/services.yaml
-parameters:
-    redis_dsn: '%env(REDIS_URL)%'
-
 services:
+
     _defaults:
         autowire: true
         autoconfigure: true
@@ -15,17 +12,18 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    redis.client:
-        class: Redis
-        calls:
-            - connect: ['redis', 6379]
-        public: true
-
-    App\Service\RedisCacheService:
-        public: true
+    App\Client\CBRClient:
         arguments:
-            $redis: '@redis.client'
+            $httpClient: '@http_client'
+            $logger: '@logger'
 
-    App\Service\CBRService:
+    App\Service\CBR\CBRService:
         arguments:
-            $logger: '@monolog.logger'
+            $cbrClient: '@App\Client\CBRClient'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $cache: '@App\Service\RedisCacheService'
+            $logger: '@logger'
+
+    App\Repository\ExchangeRateRepository:
+        arguments:
+            $cache: '@exchange_rates.cache'

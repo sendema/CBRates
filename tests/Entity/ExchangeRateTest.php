@@ -7,61 +7,112 @@ use PHPUnit\Framework\TestCase;
 
 class ExchangeRateTest extends TestCase
 {
-    public function testExchangeRateSettersAndGetters()
+    private ExchangeRate $exchangeRate;
+
+    protected function setUp(): void
     {
-        $exchangeRate = new ExchangeRate();
-
-        $exchangeRate->setCurrencyCode('USD');
-        $this->assertEquals('USD', $exchangeRate->getCurrencyCode());
-
-        $exchangeRate->setValue('75.5');
-        $this->assertEquals('75.5', $exchangeRate->getValue());
-
-        $exchangeRate->setNominal('1');
-        $this->assertEquals('1', $exchangeRate->getNominal());
-
-        $date = new \DateTime();
-        $exchangeRate->setDate($date);
-        $this->assertEquals($date, $exchangeRate->getDate());
-
-        $exchangeRate->setPreviousValue('74.8');
-        $this->assertEquals('74.8', $exchangeRate->getPreviousValue());
+        $this->exchangeRate = new ExchangeRate();
     }
 
-    public function testGetRate()
+    public function testInitialValuesAreNull(): void
     {
-        $exchangeRate = new ExchangeRate();
-        $exchangeRate->setValue('75.5');
-        $exchangeRate->setNominal('1');
-
-        $this->assertEquals(75.5, $exchangeRate->getRate());
-
-        $exchangeRate->setValue('157.2');
-        $exchangeRate->setNominal('10');
-        $this->assertEquals(15.72, round($exchangeRate->getRate(), 2));
-
-        $nullExchangeRate = new ExchangeRate();
-        $this->assertNull($nullExchangeRate->getRate());
+        $this->assertNull($this->exchangeRate->getId());
+        $this->assertNull($this->exchangeRate->getCurrencyCode());
+        $this->assertNull($this->exchangeRate->getValue());
+        $this->assertNull($this->exchangeRate->getNominal());
+        $this->assertNull($this->exchangeRate->getDate());
+        $this->assertNull($this->exchangeRate->getPreviousValue());
+        $this->assertNull($this->exchangeRate->getRate());
     }
 
-    public function testRateCalculationWithDifferentNominals()
+    public function testExchangeRateSettersAndGetters(): void
     {
-        $testCases = [
-            ['value' => '75.5', 'nominal' => '1', 'expected' => 75.5],
-            ['value' => '157.2', 'nominal' => '10', 'expected' => 15.72],
-            ['value' => '3141.6', 'nominal' => '100', 'expected' => 31.416],
+        $this->exchangeRate->setCurrencyCode('USD');
+        $this->assertEquals('USD', $this->exchangeRate->getCurrencyCode());
+
+        $this->exchangeRate->setValue('75.5000');
+        $this->assertEquals('75.5000', $this->exchangeRate->getValue());
+
+        $this->exchangeRate->setNominal('1.0000');
+        $this->assertEquals('1.0000', $this->exchangeRate->getNominal());
+
+        $date = new \DateTime('2024-01-29');
+        $this->exchangeRate->setDate($date);
+        $this->assertEquals($date, $this->exchangeRate->getDate());
+
+        $this->exchangeRate->setPreviousValue('74.8000');
+        $this->assertEquals('74.8000', $this->exchangeRate->getPreviousValue());
+    }
+
+    public function testGetRate(): void
+    {
+        $this->exchangeRate->setValue('75.5000');
+        $this->exchangeRate->setNominal('1.0000');
+        $this->assertEquals(75.50, $this->exchangeRate->getRate());
+
+        $this->exchangeRate->setValue('157.2000');
+        $this->exchangeRate->setNominal('10.0000');
+        $this->assertEquals(15.72, $this->exchangeRate->getRate());
+    }
+
+    public function testGetRateWithNullValues(): void
+    {
+        $this->exchangeRate->setValue(null);
+        $this->exchangeRate->setNominal('1.0000');
+        $this->assertNull($this->exchangeRate->getRate());
+
+        $this->exchangeRate->setValue('75.5000');
+        $this->exchangeRate->setNominal(null);
+        $this->assertNull($this->exchangeRate->getRate());
+
+        $this->exchangeRate->setValue(null);
+        $this->exchangeRate->setNominal(null);
+        $this->assertNull($this->exchangeRate->getRate());
+    }
+
+    /**
+     * @dataProvider rateCalculationProvider
+     */
+    public function testRateCalculationWithDifferentNominals(string $value, string $nominal, float $expected): void
+    {
+        $this->exchangeRate->setValue($value);
+        $this->exchangeRate->setNominal($nominal);
+
+        $this->assertEquals(
+            $expected,
+            $this->exchangeRate->getRate(),
+            "Failed for value {$value} and nominal {$nominal}"
+        );
+    }
+
+    public function rateCalculationProvider(): array
+    {
+        return [
+            'Standard rate' => ['75.5000', '1.0000', 75.50],
+            'Rate with nominal 10' => ['157.2000', '10.0000', 15.72],
+            'Rate with nominal 100' => ['3141.6000', '100.0000', 31.42],
+            'Rate with comma' => ['75,5000', '1,0000', 75.50],
         ];
+    }
 
-        foreach ($testCases as $case) {
-            $exchangeRate = new ExchangeRate();
-            $exchangeRate->setValue($case['value']);
-            $exchangeRate->setNominal($case['nominal']);
+    public function testFluentInterface(): void
+    {
+        $this->assertSame(
+            $this->exchangeRate,
+            $this->exchangeRate->setCurrencyCode('USD'),
+            'setCurrencyCode should return $this'
+        );
 
-            $this->assertEquals(
-                round($case['expected'], 2),
-                round($exchangeRate->getRate(), 2),
-                "Failed for value {$case['value']} and nominal {$case['nominal']}"
-            );
-        }
+        $this->assertSame(
+            $this->exchangeRate,
+            $this->exchangeRate->setValue('75.5000'),
+            'setValue should return $this'
+        );
+
+        $this->assertSame(
+            $this->exchangeRate,
+            $this->exchangeRate->setNominal('1.0000'),
+            'setNominal should return $this'
+        );
     }
 }
