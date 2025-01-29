@@ -26,7 +26,7 @@ class UpdateExchangeRatesCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         try {
-            $currencies = ['USD', 'EUR', 'KRW', 'CNY']; // Список валют для обновления
+            $currencies = ['USD', 'EUR', 'KRW', 'CNY'];
             $this->cbrService->updateExchangeRates($currencies);
 
             $io->success('Exchange rates have been successfully updated.');

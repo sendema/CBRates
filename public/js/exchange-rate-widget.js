@@ -1,4 +1,4 @@
-export class ExchangeRateWidget {
+class ExchangeRateWidget {
     constructor(containerId, options = {}) {
         this.container = document.getElementById(containerId);
         this.options = {
@@ -93,3 +93,10 @@ export class ExchangeRateWidget {
         setInterval(() => this.updateRates(), this.options.updateInterval);
     }
 }
+
+// export { ExchangeRateWidget };
+
+// if (typeof window !== 'undefined') {
+//     window.ExchangeRateWidget = ExchangeRateWidget;
+// }
+

@@ -1,4 +1,3 @@
-// tests/js/exchange-rate-widget.test.js
 import { ExchangeRateWidget } from '../../public/js/exchange-rate-widget.js';
 
 describe('ExchangeRateWidget', () => {
@@ -6,30 +5,34 @@ describe('ExchangeRateWidget', () => {
     let widget;
 
     beforeEach(() => {
-        // Set up a mock DOM element
         container = document.createElement('div');
         container.id = 'exchange-rates';
         document.body.appendChild(container);
 
-        // Mock successful fetch response
         global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
             json: () => Promise.resolve([
                 {
                     code: 'USD',
                     rate: 75.5,
                     trend: 'up',
-                    change: 0.5
+                    change: 0.5,
+                    value: '75.5',
+                    nominal: '1',
+                    previousValue: '75.0'
                 },
                 {
                     code: 'EUR',
                     rate: 85.3,
                     trend: 'down',
-                    change: -0.3
+                    change: -0.3,
+                    value: '85.3',
+                    nominal: '1',
+                    previousValue: '85.6'
                 }
             ])
         });
 
-        // Initialize widget
         widget = new ExchangeRateWidget('exchange-rates');
     });
 
@@ -50,13 +53,11 @@ describe('ExchangeRateWidget', () => {
         await new Promise(resolve => setTimeout(resolve, 0));
         const rateItems = container.querySelectorAll('.rate-item');
 
-        // Check first rate item (USD)
         const usdRateItem = rateItems[0];
         expect(usdRateItem.querySelector('.currency-code').textContent).toBe('USD');
         expect(usdRateItem.querySelector('.rate-value').textContent).toContain('75.5 ₽ ↑');
         expect(usdRateItem.querySelector('.change').textContent).toBe('(0.5%)');
 
-        // Check second rate item (EUR)
         const eurRateItem = rateItems[1];
         expect(eurRateItem.querySelector('.currency-code').textContent).toBe('EUR');
         expect(eurRateItem.querySelector('.rate-value').textContent).toContain('85.3 ₽ ↓');
