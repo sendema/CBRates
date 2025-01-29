@@ -11,7 +11,6 @@ class ExchangeRateTest extends TestCase
     {
         $exchangeRate = new ExchangeRate();
 
-        // Test setters and getters
         $exchangeRate->setCurrencyCode('USD');
         $this->assertEquals('USD', $exchangeRate->getCurrencyCode());
 
@@ -41,7 +40,6 @@ class ExchangeRateTest extends TestCase
         $exchangeRate->setNominal('10');
         $this->assertEquals(15.72, round($exchangeRate->getRate(), 2));
 
-        // Тест с null значением
         $nullExchangeRate = new ExchangeRate();
         $this->assertNull($nullExchangeRate->getRate());
     }

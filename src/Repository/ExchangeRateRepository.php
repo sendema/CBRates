@@ -13,9 +13,6 @@ class ExchangeRateRepository extends ServiceEntityRepository
         parent::__construct($registry, ExchangeRate::class);
     }
 
-    /**
-     * Находит последние курсы для указанных валют
-     */
     public function findLatestRates(array $currencyCodes): array
     {
         return $this->createQueryBuilder('er')
@@ -30,14 +27,21 @@ class ExchangeRateRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findOneByDateAndCode(string $code, \DateTime $date): ?ExchangeRate
+    public function findRatesByPeriod(\DateTime $startDate, \DateTime $endDate, array $currencies = []): array
     {
-        return $this->createQueryBuilder('e')
-            ->andWhere('e.currencyCode = :code')
-            ->andWhere('e.date = :date')
-            ->setParameter('code', $code)
-            ->setParameter('date', $date)
-            ->getQuery()
-            ->getOneOrNullResult();
+        $qb = $this->createQueryBuilder('er')
+            ->where('er.date BETWEEN :start AND :end');
+
+        if (!empty($currencies)) {
+            $qb->andWhere('er.currencyCode IN (:currencies)')
+                ->setParameter('currencies', $currencies);
+        }
+
+        $qb->setParameter('start', $startDate)
+            ->setParameter('end', $endDate)
+            ->orderBy('er.date', 'ASC')
+            ->addOrderBy('er.currencyCode', 'ASC');
+
+        return $qb->getQuery()->getResult();
     }
 }

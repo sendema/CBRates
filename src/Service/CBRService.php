@@ -37,7 +37,6 @@ class CBRService
 
     private function fetchRatesWithCache(): string
     {
-        // Не используем кэширование для получения актуальных данных
         $today = new \DateTime();
         $url = self::CBR_URL;
 
@@ -102,14 +101,12 @@ class CBRService
 
         try {
             foreach ($rates as $rateData) {
-                // Try to find an existing rate for this currency and date
                 $existingRate = $this->entityManager->getRepository(ExchangeRate::class)
                     ->findOneBy([
                         'currencyCode' => $rateData['code'],
                         'date' => $rateData['date']
                     ]);
 
-                // If rate exists, update it; otherwise, create new
                 if ($existingRate) {
                     $existingRate->setValue($rateData['value'])
                         ->setNominal($rateData['nominal']);

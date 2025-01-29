@@ -45,17 +45,14 @@ class CBRServiceTest extends TestCase
 
     public function testUpdateExchangeRatesWithHttpError()
     {
-        // Создаем mock ответа с ошибкой
         $mockResponse = $this->createMock(ResponseInterface::class);
         $mockResponse->method('getStatusCode')
             ->willReturn(500);
 
-        // Настраиваем HTTP-клиент для возврата mock ответа
         $this->httpClient->expects($this->once())
             ->method('request')
             ->willReturn($mockResponse);
 
-        // Ожидаем логирование ошибки
         $this->logger->expects($this->once())
             ->method('error')
             ->with(
@@ -63,11 +60,9 @@ class CBRServiceTest extends TestCase
                 $this->isType('array')
             );
 
-        // Ожидаем исключение
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/Failed to fetch rates/');
 
-        // Вызываем метод с тестовыми данными
         $this->cbrService->updateExchangeRates(['USD']);
     }
 }

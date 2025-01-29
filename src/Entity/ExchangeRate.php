@@ -1,5 +1,5 @@
 <?php
-// src/Entity/ExchangeRate.php
+
 namespace App\Entity;
 
 use App\Repository\ExchangeRateRepository;
@@ -95,11 +95,9 @@ class ExchangeRate
             return null;
         }
 
-        // Заменить запятую на точку для корректного парсинга
         $value = str_replace(',', '.', $this->value);
         $nominal = str_replace(',', '.', $this->nominal);
 
-        // Округление до 2 знаков после запятой
         return round((float) $value / (float) $nominal, 2);
     }
 }

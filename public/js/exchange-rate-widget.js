@@ -1,9 +1,8 @@
-// public/js/exchange-rate-widget.js
 export class ExchangeRateWidget {
     constructor(containerId, options = {}) {
         this.container = document.getElementById(containerId);
         this.options = {
-            updateInterval: options.updateInterval || 300000, // 5 минут по умолчанию
+            updateInterval: options.updateInterval || 300000,
             apiUrl: options.apiUrl || '/api/rates/current'
         };
 
@@ -25,7 +24,6 @@ export class ExchangeRateWidget {
             </div>
         `;
 
-        // Добавляем стили
         const style = document.createElement('style');
         style.textContent = `
             .exchange-rate-widget {
@@ -95,9 +93,3 @@ export class ExchangeRateWidget {
         setInterval(() => this.updateRates(), this.options.updateInterval);
     }
 }
-
-// Пример использования:
-// new ExchangeRateWidget('exchange-rates', {
-//     updateInterval: 300000,
-//     apiUrl: '/api/rates/current'
-// });
