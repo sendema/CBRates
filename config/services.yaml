@@ -21,7 +21,7 @@ services:
         arguments:
             $cbrClient: '@App\Client\CBRClient'
             $entityManager: '@doctrine.orm.entity_manager'
-            $cache: '@App\Service\RedisCacheService'
+            $cache: '@cache.app'
             $logger: '@logger'
 
     App\Repository\ExchangeRateRepository:

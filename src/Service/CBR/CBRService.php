@@ -6,7 +6,7 @@ use App\Client\CBRClient;
 use App\Entity\ExchangeRate;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use App\Service\RedisCacheService;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class CBRService
 {
@@ -16,15 +16,14 @@ class CBRService
     public function __construct(
         private CBRClient $cbrClient,
         private EntityManagerInterface $entityManager,
-        private RedisCacheService $cache,
+        private TagAwareCacheInterface $cache,
         private LoggerInterface $logger
     ) {}
 
     public function updateExchangeRates(array $currencyCodes): void
     {
         try {
-            $xml = $this->cbrClient->fetchRates();
-            $rates = $this->cbrClient->parseXML($xml, $currencyCodes);
+            $rates = $this->cbrClient->fetchRates($currencyCodes);
             $this->saveRatesWithCache($rates);
         } catch (\Exception $e) {
             $this->logger->error('Failed to update exchange rates', [

@@ -52,7 +52,7 @@ class ExchangeRateController extends AbstractController
 
             return $this->json([
                 'errors' => $errors
-            ], 400);
+            ], 422);
         }
         try {
             $startDateTime = new \DateTime($dto->getStartDate());

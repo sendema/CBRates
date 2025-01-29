@@ -14,7 +14,7 @@ class CBRClient
         private LoggerInterface $logger
     ) {}
 
-    public function fetchRates(): string
+    public function fetchRates(array $currencyCodes): array
     {
         $today = new \DateTime();
         $url = self::CBR_URL;
@@ -32,12 +32,7 @@ class CBRClient
             );
         }
 
-        return $response->getContent();
-    }
-
-    public function parseXML(string $xml, array $currencyCodes): array
-    {
-        $rates = [];
+        $xml = $response->getContent();
         $doc = new \DOMDocument();
 
         if (!@$doc->loadXML($xml)) {
@@ -47,6 +42,7 @@ class CBRClient
         $date = new \DateTime($doc->documentElement->getAttribute('Date'));
         $this->logger->info('Processing rates for date', ['date' => $date->format('Y-m-d')]);
 
+        $rates = [];
         foreach ($doc->getElementsByTagName('Valute') as $node) {
             $code = $node->getElementsByTagName('CharCode')->item(0)->nodeValue;
 

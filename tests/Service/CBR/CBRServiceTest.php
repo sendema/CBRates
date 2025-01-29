@@ -4,18 +4,18 @@ namespace App\Tests\Service\CBR;
 
 use App\Client\CBRClient;
 use App\Service\CBR\CBRService;
-use App\Service\RedisCacheService;
 use App\Entity\ExchangeRate;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class CBRServiceTest extends TestCase
 {
     private CBRClient $cbrClient;
     private EntityManagerInterface $entityManager;
-    private RedisCacheService $cache;
+    private TagAwareCacheInterface $cache;
     private LoggerInterface $logger;
     private EntityRepository $repository;
     private CBRService $cbrService;
@@ -24,9 +24,7 @@ class CBRServiceTest extends TestCase
     {
         $this->cbrClient = $this->createMock(CBRClient::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->cache = $this->getMockBuilder(RedisCacheService::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->cache = $this->createMock(TagAwareCacheInterface::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->repository = $this->createMock(EntityRepository::class);
 
@@ -47,7 +45,6 @@ class CBRServiceTest extends TestCase
     {
         $currencyCodes = ['USD', 'EUR'];
         $date = new \DateTime();
-        $xml = '<?xml version="1.0" encoding="UTF-8"?><ValCurs Date="01.01.2024"></ValCurs>';
         $rates = [
             [
                 'code' => 'USD',
@@ -59,11 +56,7 @@ class CBRServiceTest extends TestCase
 
         $this->cbrClient->expects($this->once())
             ->method('fetchRates')
-            ->willReturn($xml);
-
-        $this->cbrClient->expects($this->once())
-            ->method('parseXML')
-            ->with($xml, $currencyCodes)
+            ->with($currencyCodes)
             ->willReturn($rates);
 
         $this->entityManager->expects($this->once())
@@ -97,6 +90,7 @@ class CBRServiceTest extends TestCase
 
         $this->cbrClient->expects($this->once())
             ->method('fetchRates')
+            ->with($currencyCodes)
             ->willThrowException($exception);
 
         $this->logger->expects($this->once())
@@ -119,7 +113,6 @@ class CBRServiceTest extends TestCase
     {
         $currencyCodes = ['USD'];
         $date = new \DateTime();
-        $xml = '<?xml version="1.0" encoding="UTF-8"?><ValCurs Date="01.01.2024"></ValCurs>';
         $rates = [
             [
                 'code' => 'USD',
@@ -131,10 +124,7 @@ class CBRServiceTest extends TestCase
 
         $this->cbrClient->expects($this->once())
             ->method('fetchRates')
-            ->willReturn($xml);
-
-        $this->cbrClient->expects($this->once())
-            ->method('parseXML')
+            ->with($currencyCodes)
             ->willReturn($rates);
 
         $this->entityManager->expects($this->once())
