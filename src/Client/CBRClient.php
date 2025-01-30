@@ -16,57 +16,81 @@ class CBRClient
 
     public function fetchRates(array $currencyCodes): array
     {
-        $today = new \DateTime();
-        $url = self::CBR_URL;
+        try {
+            $today = new \DateTime();
+            $url = self::CBR_URL;
 
-        $this->logger->info('Fetching CBR rates', [
-            'url' => $url,
-            'date' => $today->format('Y-m-d')
-        ]);
+            $this->logger->info('Fetching CBR rates', [
+                'url' => $url,
+                'date' => $today->format('Y-m-d')
+            ]);
 
-        $response = $this->httpClient->request('GET', $url);
+            $response = $this->httpClient->request('GET', $url);
 
-        if (200 !== $response->getStatusCode()) {
-            throw new \RuntimeException(
-                sprintf('Failed to fetch rates from CBR. Status code: %d', $response->getStatusCode())
-            );
-        }
-
-        $xml = $response->getContent();
-        $doc = new \DOMDocument();
-
-        if (!@$doc->loadXML($xml)) {
-            throw new \RuntimeException('Failed to parse XML response from CBR');
-        }
-
-        $date = new \DateTime($doc->documentElement->getAttribute('Date'));
-        $this->logger->info('Processing rates for date', ['date' => $date->format('Y-m-d')]);
-
-        $rates = [];
-        foreach ($doc->getElementsByTagName('Valute') as $node) {
-            $code = $node->getElementsByTagName('CharCode')->item(0)->nodeValue;
-
-            if (!in_array($code, $currencyCodes)) {
-                continue;
+            if (200 !== $response->getStatusCode()) {
+                throw new \RuntimeException(
+                    sprintf('Failed to fetch rates from CBR. Status code: %d', $response->getStatusCode())
+                );
             }
 
-            $nominal = $node->getElementsByTagName('Nominal')->item(0)->nodeValue;
-            $value = str_replace(',', '.', $node->getElementsByTagName('Value')->item(0)->nodeValue);
+            $xml = $response->getContent();
+            return $this->parseXML($xml, $currencyCodes);
 
-            $rates[] = [
-                'code' => $code,
-                'nominal' => $nominal,
-                'value' => $value,
-                'date' => $date
-            ];
+        } catch (\Exception $e) {
+            $this->logger->error('Error fetching rates from CBR', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
+    }
 
-            $this->logger->debug('Parsed currency rate', [
-                'code' => $code,
-                'value' => $value,
+    private function parseXML(string $xml, array $currencyCodes): array
+    {
+        try {
+            $doc = new \DOMDocument();
+
+            if (!@$doc->loadXML($xml)) {
+                throw new \RuntimeException('Failed to parse XML response from CBR');
+            }
+
+            $date = new \DateTime($doc->documentElement->getAttribute('Date'));
+            $this->logger->info('Processing rates for date', [
                 'date' => $date->format('Y-m-d')
             ]);
-        }
 
-        return $rates;
+            $rates = [];
+            foreach ($doc->getElementsByTagName('Valute') as $node) {
+                $code = $node->getElementsByTagName('CharCode')->item(0)->nodeValue;
+
+                if (!in_array($code, $currencyCodes)) {
+                    continue;
+                }
+
+                $nominal = $node->getElementsByTagName('Nominal')->item(0)->nodeValue;
+                $value = str_replace(',', '.', $node->getElementsByTagName('Value')->item(0)->nodeValue);
+
+                $rates[] = [
+                    'code' => $code,
+                    'nominal' => $nominal,
+                    'value' => $value,
+                    'date' => $date
+                ];
+
+                $this->logger->debug('Parsed currency rate', [
+                    'code' => $code,
+                    'value' => $value,
+                    'date' => $date->format('Y-m-d')
+                ]);
+            }
+
+            return $rates;
+
+        } catch (\Exception $e) {
+            $this->logger->error('Error parsing XML from CBR', [
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
     }
 }

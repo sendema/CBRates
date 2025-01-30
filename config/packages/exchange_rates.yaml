@@ -1,0 +1,20 @@
+parameters:
+  exchange_rates:
+    # Currencies to fetch from Central Bank
+    fetch_currencies:
+      - 'USD'
+      - 'EUR'
+      - 'CNY'
+      - 'JPY'
+      - 'KRW'
+      - 'AUD'
+    # Currencies to display in widget
+    display_currencies:
+      - 'USD'
+      - 'EUR'
+      - 'CNY'
+      - 'JPY'
+      - 'KRW'
+      - 'AUD'
+    # Widget update interval in milliseconds (5 minutes)
+    widget_update_interval: 300000

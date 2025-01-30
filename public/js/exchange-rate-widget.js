@@ -1,9 +1,12 @@
-class ExchangeRateWidget {
+export class ExchangeRateWidget {
     constructor(containerId, options = {}) {
         this.container = document.getElementById(containerId);
+        const config = window.exchangeRatesConfig || {};
+
         this.options = {
-            updateInterval: options.updateInterval || 300000,
-            apiUrl: options.apiUrl || '/api/rates/current'
+            updateInterval: options.updateInterval || config.widgetUpdateInterval || 300000,
+            apiUrl: options.apiUrl || '/api/rates/current',
+            displayCurrencies: options.displayCurrencies || config.displayCurrencies || ['USD', 'EUR', 'CNY', 'KRW', 'JPY']
         };
 
         this.init();
@@ -58,8 +61,19 @@ class ExchangeRateWidget {
             const response = await fetch(this.options.apiUrl);
             const rates = await response.json();
 
+            console.log('Received rates:', rates);
+            console.log('Display currencies:', this.options.displayCurrencies);
+
+            const filteredRates = rates.filter(rate =>
+                this.options.displayCurrencies.includes(rate.code)
+            );
+
+            console.log('Filtered rates:', filteredRates);
+
             const container = this.container.querySelector('.rates-container');
-            container.innerHTML = rates.map(rate => this.createRateItem(rate)).join('');
+            container.innerHTML = filteredRates.map(rate =>
+                this.createRateItem(rate)
+            ).join('');
 
             this.updateLastUpdateTime();
         } catch (error) {

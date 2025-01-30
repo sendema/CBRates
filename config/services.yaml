@@ -1,5 +1,4 @@
 services:
-
     _defaults:
         autowire: true
         autoconfigure: true
@@ -21,9 +20,25 @@ services:
         arguments:
             $cbrClient: '@App\Client\CBRClient'
             $entityManager: '@doctrine.orm.entity_manager'
-            $cache: '@cache.app'
+            $cache: '@cache.exchange_rates'
             $logger: '@logger'
 
     App\Repository\ExchangeRateRepository:
         arguments:
-            $cache: '@exchange_rates.cache'
+            $cache: '@cache.exchange_rates'
+
+    App\Controller\Api\ExchangeRateController:
+        arguments:
+            $rateRepository: '@App\Repository\ExchangeRateRepository'
+            $validator: '@validator'
+            $requestFactory: '@App\Factory\HistoricalRatesRequestFactory'
+            $exchangeRatesConfig: '%exchange_rates%'
+
+    App\Controller\Api\ConfigController:
+        arguments:
+            $exchangeRatesConfig: '%exchange_rates%'
+
+    App\Command\UpdateExchangeRatesCommand:
+        arguments:
+            $cbrService: '@App\Service\CBR\CBRService'
+            $exchangeRatesConfig: '%exchange_rates%'

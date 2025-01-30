@@ -10,7 +10,7 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class ExchangeRateRepository extends ServiceEntityRepository
 {
-    private const CACHE_TTL = 3600; // 1 час
+    private const CACHE_TTL = 3600;
 
     public function __construct(
         ManagerRegistry $registry,

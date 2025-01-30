@@ -16,7 +16,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class UpdateExchangeRatesCommand extends Command
 {
     public function __construct(
-        private CBRService $cbrService
+        private CBRService $cbrService,
+        private array $exchangeRatesConfig
     ) {
         parent::__construct();
     }
@@ -28,7 +29,7 @@ class UpdateExchangeRatesCommand extends Command
         try {
             $io->info('Starting exchange rates update...');
 
-            $currencies = ['USD', 'EUR', 'KRW', 'CNY'];
+            $currencies = $this->exchangeRatesConfig['fetch_currencies'];
             $this->cbrService->updateExchangeRates($currencies);
 
             $io->success(sprintf(

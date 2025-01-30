@@ -24,7 +24,7 @@ class CBRService
     {
         try {
             $rates = $this->cbrClient->fetchRates($currencyCodes);
-            $this->saveRatesWithCache($rates);
+            $this->saveRates($rates);
         } catch (\Exception $e) {
             $this->logger->error('Failed to update exchange rates', [
                 'error' => $e->getMessage(),
@@ -34,7 +34,7 @@ class CBRService
         }
     }
 
-    private function saveRatesWithCache(array $rates): void
+    private function saveRates(array $rates): void
     {
         $this->entityManager->beginTransaction();
 

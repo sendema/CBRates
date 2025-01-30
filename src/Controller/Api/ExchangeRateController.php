@@ -14,17 +14,21 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[Route('/api', name: 'api_')]
 class ExchangeRateController extends AbstractController
 {
+    private array $fetchCurrencies;
+
     public function __construct(
         private ExchangeRateRepository $rateRepository,
         private ValidatorInterface $validator,
-        private HistoricalRatesRequestFactory $requestFactory
-    ) {}
+        private HistoricalRatesRequestFactory $requestFactory,
+        private array $exchangeRatesConfig
+    ) {
+        $this->fetchCurrencies = $exchangeRatesConfig['fetch_currencies'];
+    }
 
     #[Route('/rates/current', name: 'current_rates', methods: ['GET'])]
     public function getCurrentRates(): JsonResponse
     {
-        $currencies = ['USD', 'EUR', 'CNY', 'KRW'];
-        $rates = $this->rateRepository->findLatestRates($currencies);
+        $rates = $this->rateRepository->findLatestRates($this->fetchCurrencies);
 
         $response = array_map(
             fn($rate) => (new ExchangeRateResource($rate))->toArray(),

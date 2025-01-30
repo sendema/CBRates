@@ -1,11 +1,9 @@
 framework:
     cache:
-        app: cache.adapter.redis
-        default_redis_provider: 'redis://localhost'
-        
+        default_redis_provider: 'redis://redis:6379'
+
         pools:
-            exchange_rates.cache:
-                adapter: cache.adapter.redis
+            cache.exchange_rates:
+                adapter: cache.adapter.redis_tag_aware
                 provider: '%env(REDIS_URL)%'
-                default_lifetime: 3600
                 tags: true

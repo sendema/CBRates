@@ -27,7 +27,7 @@ class ExchangeRateResource
         $previous = $this->rate->getPreviousValue();
 
         if ($previous === null || $current === null) {
-            return null;
+            return 0;
         }
         return round(((float)$current - (float)$previous) / (float)$previous * 100, 2);
     }

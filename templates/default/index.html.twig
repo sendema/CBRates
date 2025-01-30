@@ -14,13 +14,21 @@
 
 <script type="module">
     import { ExchangeRateWidget } from '/js/exchange-rate-widget.js';
+    async function initWidget() {
+        try {
+            const response = await fetch('/api/config/exchange-rates');
+            const config = await response.json();
+            window.exchangeRatesConfig = config;
 
-    document.addEventListener('DOMContentLoaded', () => {
-        new ExchangeRateWidget('exchange-rates', {
-            updateInterval: 300000,
-            apiUrl: '/api/rates/current'
-        });
-    });
+            new ExchangeRateWidget('exchange-rates', {
+                apiUrl: '/api/rates/current'
+            });
+        } catch (error) {
+            console.error('Failed to initialize widget:', error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initWidget);
 </script>
 </body>
 </html>
